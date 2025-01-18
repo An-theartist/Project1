@@ -4,7 +4,7 @@
  */
 package Login;
 
-import Login.swinglocal.ButtonOutLine;
+import swinglocal.ButtonOutLine;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;

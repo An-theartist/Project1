@@ -11,7 +11,7 @@ MaMon varchar(10),
 TenMon nvarchar(50));
 
 Create table DiemSV(
-MSSV int not null primary key,
+MSSV int not null,
 MaLop int not null,
 Diem int,
 Foreign key(MSSV) references SV(MSSV),

@@ -1,4 +1,4 @@
-package Login.swinglocal;
+package swinglocal;
 
 import java.awt.Color;
 import java.awt.Cursor;

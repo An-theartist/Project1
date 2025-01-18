@@ -4,9 +4,9 @@
  */
 package Login;
 
-import Login.swinglocal.Button;
-import Login.swinglocal.MyPasswordField;
-import Login.swinglocal.MyTextField;
+import swinglocal.Button;
+import swinglocal.MyPasswordField;
+import swinglocal.MyTextField;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;

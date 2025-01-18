@@ -12,7 +12,6 @@ import Login.Message;
 import Login.PanelCover;
 import Login.PanelLogin;
 import MainGV.GVHome;
-import MainGV.XemDiem;
 import SearchHS.HSHome;
 
 import java.awt.event.ActionEvent;
@@ -145,6 +144,7 @@ public class Main extends javax.swing.JFrame {
                 home.setMSSV(MSSV);  // Truyền MSSV vào đối tượng HSHome
                 home.setVisible(true);
                 showMessage(Message.MessageType.SUCCESS, "Tra cứu thành công");
+                setEnabled(false);
             }   else{
                 showMessage(Message.MessageType.ERROR, "Không tồn tại MSSV");
             }
@@ -157,7 +157,6 @@ public class Main extends javax.swing.JFrame {
     private void GV() {
         String user = login.getUser();
         String password = login.getPassword();
-        
         
         if (user.equals("admin") && password.equals("admin123")) {
                 this.dispose();

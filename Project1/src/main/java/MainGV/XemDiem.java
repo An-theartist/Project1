@@ -5,6 +5,10 @@
 package MainGV;
 
 import DB.ConnectDB;
+import MainGV.SuaDiem.SuaDiem;
+import MainGV.SuaDiem.TableActionCellEditor;
+import MainGV.SuaDiem.TableActionCellRender;
+import MainGV.SuaDiem.TableActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,7 +16,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -47,6 +50,12 @@ public class XemDiem extends javax.swing.JFrame {
         }   catch(SQLException ex){
             Logger.getLogger(XemDiem.class.getName () ) .log (Level. SEVERE, null, ex) ;
         }
+    }
+    private void showPopup(String MSSV,String MaLop) {
+        // Vô hiệu hóa cửa sổ chính
+        setEnabled(false);
+        // Tạo cửa sổ pop-up
+        new SuaDiem(XemDiem.this,MSSV,MaLop).setVisible(true);
     }
 
     /**
@@ -183,6 +192,7 @@ public class XemDiem extends javax.swing.JFrame {
 
             }
         ));
+        jTable1.setRowHeight(30);
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
@@ -205,7 +215,7 @@ public class XemDiem extends javax.swing.JFrame {
                             .addComponent(jComboBox1, 0, 246, Short.MAX_VALUE))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
                         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
                                 .addComponent(jButton17, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -232,7 +242,7 @@ public class XemDiem extends javax.swing.JFrame {
                     .addComponent(Mon, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(36, 36, 36)
                 .addComponent(jButton17)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(33, 33, 33))
         );
@@ -289,15 +299,48 @@ public class XemDiem extends javax.swing.JFrame {
                              where l.MaLop = """ + MaLop;
                 pst= con.prepareStatement(sql);
                 rs = pst.executeQuery();
+                
+                //jTable1.setEnabled(false);
+                jTable1.setDefaultEditor(Object.class, null);
                 ResultSetMetaData rsmd= rs.getMetaData();
                 DefaultTableModel model= (DefaultTableModel) jTable1.getModel();
                 int cols = rsmd.getColumnCount();
-                String[] colName = new String[cols];
+                String[] colName = new String[cols+1];
                 for(int i=0;i<cols;i++){
                     colName[i]=rsmd.getColumnName(i+1);
                 }
+                colName[3]="Sửa/Xoá";
                 model.setColumnIdentifiers(colName);
                 String MSSV,HoTen,Diem;
+                TableActionEvent event=new TableActionEvent(){
+                    @Override
+                    public void onEdit(int row) {
+                        showPopup((String)jTable1.getValueAt(row, 0),MaLop);
+                    }
+                    
+                    @Override
+                    public void onDelete(int row) {
+                        if (jTable1.isEditing()) {
+                            jTable1.getCellEditor().stopCellEditing();
+                        }
+                        try{
+                            con = ConnectDB.getConnection();
+                            PreparedStatement pst1 = con.prepareStatement("DELETE FROM diemsv WHERE MaLop = ? AND MSSV = ?");
+                            pst1.setString(1, MaLop);
+                            pst1.setString(2, (String)jTable1.getValueAt(row, 0));
+                            pst1.executeUpdate();
+                            pst1.close();
+                            con.close();
+                            model.removeRow(row);
+                            
+                        } catch(SQLException e){
+                            e.printStackTrace();
+                        }
+                        
+                    }
+                };
+                jTable1.getColumnModel().getColumn(3).setCellRenderer(new TableActionCellRender());
+                jTable1.getColumnModel().getColumn(3).setCellEditor(new TableActionCellEditor(event));
                 while(rs.next()){
                     MSSV=rs.getString(1);
                     HoTen=rs.getString(2);
@@ -305,13 +348,23 @@ public class XemDiem extends javax.swing.JFrame {
                     String[] row={MSSV,HoTen,Diem};
                     model.addRow(row);
                 }
+                
                 pst.close();
                 con.close();
                 
         }   catch (SQLException e) {
                 // Xử lý lỗi nếu có
                 e.printStackTrace();
+                }finally {
+                // Đảm bảo đóng kết nối và các đối tượng sử dụng sau khi xong
+                try {
+                    if (rs != null) rs.close();
+                    if (pst != null) pst.close();
+                    if (con != null) con.close();
+                } catch (SQLException se) {
+                    se.printStackTrace();
                 }
+            }
     }//GEN-LAST:event_jButton17ActionPerformed
 
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
@@ -348,37 +401,7 @@ public class XemDiem extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(XemDiem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(XemDiem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(XemDiem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(XemDiem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new XemDiem().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField MaHP;
