@@ -1,3 +1,3 @@
-![UML] (Project1.png)
+![UML](Project1.png)
 
-![Video demo] (Demo.mp4)
+![Video demo](Demo.mp4)
